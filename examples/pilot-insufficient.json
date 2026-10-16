@@ -1,0 +1,58 @@
+{
+  "format_version": 1,
+  "record": {
+    "schema_version": 1,
+    "demo": true,
+    "object_id": "DEMO-UNCLEAR",
+    "official_url": null,
+    "description": "Вымышленный размытый фрагмент однотонного предмета.",
+    "observations": [
+      "Сценарий задаёт только синее пятно без надписей и узнаваемой формы."
+    ],
+    "limitations": [
+      "Недостаточно отличительных признаков; модель и материал неизвестны.",
+      "Изображения нет; пример проверяет структуру результата, не зрение."
+    ],
+    "outcome": "insufficient_data",
+    "leads": []
+  },
+  "provenance": {
+    "image_url": "https://example.invalid/synthetic-fixture",
+    "retrieved_at": "2026-10-16T00:00:00Z",
+    "sha256": "f5a775a2ef3a0b8008d46e468fb5e8eacc6b06d3c6e848801d64de0a22241d20",
+    "byte_length": 42,
+    "rights_note": "DEMO: original synthetic bytes, no third-party or case material.",
+    "processing": [
+      "DEMO: no image processing; not an image recognition test."
+    ]
+  },
+  "searches": [
+    {
+      "query": "DEMO invented query, not executed on the internet",
+      "kind": "web_search",
+      "executed_on": "2026-10-16",
+      "result_note": "DEMO mock log for structural testing only.",
+      "sources": []
+    }
+  ],
+  "comparisons": [
+    {
+      "name": "DEMO fictional candidate",
+      "sources": [
+        "https://example.invalid/catalog/mock"
+      ],
+      "matches": [
+        "DEMO shared colour"
+      ],
+      "contradictions": [
+        "DEMO different pattern"
+      ],
+      "decision": "rejected",
+      "reason": "DEMO pattern does not match",
+      "next_checks": [
+        "DEMO none; no actual lead"
+      ]
+    }
+  ],
+  "conclusion": "DEMO: insufficient data; this is a synthetic contract example."
+}

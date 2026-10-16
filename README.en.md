@@ -27,6 +27,12 @@ On Windows, `py -3` can replace `python`. Reports receive unique filenames under
 `.local/reports/`, which is excluded from Git. Do not post working reports to Issues.
 These commands make no network requests and send nothing to Europol.
 
+For a manual end-to-end pilot, `fingerprint`, `pilot-check` and `pilot-report` connect
+an existing record with local file SHA-256, executed-query logs and all candidate
+decisions. See [workflow, commands and responsibilities](docs/PILOT_WORKFLOW.md).
+Codex/an operator performs visual analysis and searches; the program validates records
+and byte integrity and generates reports.
+
 ## Human review workflow
 
 1. Manually open a current official card and verify its ID, URL and object.
@@ -54,7 +60,7 @@ These commands make no network requests and send nothing to Europol.
 - Validation checks structure, not truth, image rights, link availability or absence
   of every kind of personal data. Human review is mandatory before publication.
 - No scraping, monitoring, OCR, LLM, automatic matching or submission is implemented.
-  A real official image pilot has not been performed.
+  A local manual-pilot protocol is documented separately; replaying a report does not rerun internet searches.
 
 Both demos are fictional and unrelated to any case. The known object is supplied by
 the scenario author; the result does not demonstrate automated recognition.

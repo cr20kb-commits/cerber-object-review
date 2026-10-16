@@ -9,16 +9,21 @@
 - [Официальная форма](https://www.europol.europa.eu/stopchildabuse/can-you-help).
 - [Legal notice](https://www.europol.europa.eu/legal-notice): условия источника.
 
-Прямое текстовое чтение страниц при подготовке возвращало JavaScript-заглушку.
-Общее разрешение на повторную публикацию изображений не подтверждено; изображения
-не загружались и не копировались. Даже при наличии разрешения на странице нужно
-отдельно проверять исключения и права третьих лиц для конкретного объекта.
+При первоначальной подготовке текстовое чтение возвращало JavaScript-заглушку.
+2026-10-16 условия были прочитаны в браузере; на странице указана дата обновления
+2026-10-08. Они допускают частное использование материалов и требуют обращения
+за разрешением для иных способов использования, воспроизведения или передачи.
+Исключения для материалов третьих лиц сохраняются. Поэтому материалы реального
+пилота хранятся локально, а в Git включаются только собственные код, процесс и
+синтетические примеры. Проверяйте условия заново перед дальнейшим использованием.
 
 Store only official IDs, links, concise original object descriptions and public product
 links in public collaboration. No external media is included. The MIT licence covers
 only original project material. An official page being public is not proof of image rights.
-Direct text access returned a JavaScript shell during preparation; unrestricted image
-reuse was not established. No automatic image transfer is implemented.
+Direct text access initially returned a JavaScript shell. Browser review on 2026-10-16
+found private use permitted and other use/reproduction/transmission subject to permission,
+with third-party exclusions. Real pilot materials stay local. No automatic image transfer
+or unrestricted external-image reuse is implemented or claimed.
 
 Для будущих обычных демонстрационных изображений указывайте автора, лицензию,
 источник и разрешение на перераспространение. При неизвестных правах используйте ссылку.
