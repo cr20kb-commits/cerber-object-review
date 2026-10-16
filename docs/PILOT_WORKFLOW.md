@@ -51,8 +51,11 @@ source authentication, web search, redaction or Europol submission is implemente
    сохраните ссылки, совпадения, противоречия, решение, основание и следующий шаг.
    Поисковая картинка, её автоматическая подпись и текст продавца не заменяют просмотр.
    Не копируйте автоматически внешние изображения в материалы публикации.
-8. Заполните оболочку по синтетическому `examples/pilot-insufficient.json`, заменив
-   демонстрационные данные своими **локальными** данными. Затем:
+8. Для новой записи используйте оболочку v2 по синтетическому
+   `examples/pilot-candidate.json`. Замените демонстрационные данные своими
+   **локальными** данными; при `insufficient_data` задайте `record.leads: []`,
+   `lead_links: []` и реальные решения в `comparisons` (либо `[]`, если кандидатов нет).
+   `examples/pilot-insufficient.json` оставлен как пример чтения старой v1. Затем:
 
    ```console
    python -m trace_object pilot-check .local/pilots/ID/pilot.json .local/pilots/ID/fragment.webp
@@ -74,15 +77,18 @@ URLs and access dates; distinguish live, cached and unavailable sources.
 ## Оболочка / Envelope contract
 
 UTF-8 JSON, до 256 KB. Все поля обязательны; неизвестные поля отклоняются.
+Новые пилоты используют `format_version: 2`; вложенная запись остаётся
+`schema_version: 1`. Исходные материалы и старые записи программа не переписывает.
 
 | Поле | Контракт |
 | --- | --- |
-| `format_version` | integer `1`, версия оболочки, не замена версии вложенной записи |
+| `format_version` | integer `2` для новых пилотов; ограниченное чтение v1 описано ниже |
 | `record` | существующая запись `schema_version: 1`, см. RECORD_FORMAT.md |
 | `provenance` | `image_url`, `retrieved_at` (ISO-8601 UTC), `sha256` (64 lowercase hex), `byte_length` (>0 integer), `rights_note`, `processing` (непустой массив строк) |
 | `searches` | 1–100 объектов: `query`, `kind` (`web_search` / `web_image_search`), `executed_on` (`YYYY-MM-DD`), `result_note`, `sources` (массив HTTPS URL, может быть пустым) |
-| `comparisons` | 0–50 объектов: `name`, `sources`, `matches`, `contradictions`, `decision`, `reason`, `next_checks`; пустой список разрешён только при `insufficient_data` и непустом журнале выполненного поиска |
-| `conclusion` | явный ограниченный вывод, включая «недостаточно данных» при слабых результатах |
+| `comparisons` | 0–50 объектов: `comparison_id`, `name`, `sources`, `matches`, `contradictions`, `decision`, `reason`, `next_checks`; `[]` допустим только при `insufficient_data` и непустом журнале поиска |
+| `lead_links` | 0–20 объектов ровно с `lead_index` и `comparison_id`; ссылки на элементы `record.leads` и `comparisons` |
+| `conclusion` | непустой комментарий оператора; не определяет программный статус результата |
 
 `decision`: `rejected` — показанный вариант отклонён; `inconclusive` — оценить не удалось;
 `retained` — сохранённая гипотеза для дальнейшей проверки, **не подтверждённое изделие**.
@@ -91,20 +97,35 @@ UTF-8 JSON, до 256 KB. Все поля обязательны; неизвес�
 одного сравнения с `decision: retained`. Только `rejected` или `inconclusive`
 недостаточно; валидатор возвращает ошибку, а `pilot-report` не создаёт отчёт.
 
-Каждая гипотеза в `record.leads` должна опираться на сохранённое сравнение.
-Без новых полей связь задаётся через `sources`: хотя бы один URL каждого `lead`
-должен **точно совпадать** с URL хотя бы одного сравнения `retained`.
-Источник только отклонённого или неопределённого варианта не подходит.
-Это структурная связь, а не доказательство содержания: человек проверяет, что
-сравнение действительно поддерживает гипотезу. Общая ссылка сама по себе не
-подтверждает совпадение предмета. Отдельный контракт записи `schema_version: 1`
-не меняется; требование действует в оболочке пилота.
+Связь гипотез задаётся явно, а не угадывается по общему товарному URL:
+
+```json
+"lead_links": [{"lead_index": 0, "comparison_id": "CMP-001"}]
+```
+
+- `comparison_id`: уникальная ASCII-строка по шаблону `[A-Za-z][A-Za-z0-9_-]{0,63}`.
+  Сохраняйте ID при обновлении решения; один вариант занимает одну строку сравнения.
+- `lead_index`: целое число от нуля, индекс существующего `record.leads`; `true`
+  не считается числом. При перестановке или удалении гипотез обновите ссылки вручную.
+- Каждому `lead` соответствует ровно одно сравнение `retained`, и каждому `retained`
+  соответствует ровно один `lead`. Неизвестные ID, повторные и отсутствующие ссылки,
+  ссылки на `rejected`/`inconclusive`, а также сохранённые сравнения без гипотез — ошибки.
+- Все URL гипотезы должны присутствовать в **её** сравнении. Общая страница каталога
+  может использоваться разными кандидатами, но не связывает их автоматически.
+- Два сравнения с одинаковыми именем и набором источников отклоняются даже при разных
+  ID/решениях. Для имени не учитываются регистр и повторные/краевые пробелы;
+  для источников — порядок и повторения. Разные варианты должны быть явно различены.
+
+Это структурная связь, а не доказательство истинности гипотезы. Человек проверяет,
+что указан правильный вариант, его имя и признаки: программа не обнаружит один
+товар, намеренно описанный разными именами и источниками. Отдельный контракт
+записи `schema_version: 1` не меняется; ссылки находятся только в оболочке v2.
 
 | Итог записи | Сравнения | Результат при остальных корректных полях |
 | --- | --- | --- |
 | `candidate`, непустые `leads` | все `rejected` | ошибка |
 | `candidate`, непустые `leads` | только `inconclusive` | ошибка |
-| `candidate`, непустые `leads` | есть `retained`, каждый `lead` связан источником | допустимо |
+| `candidate`, непустые `leads` | v2, есть `retained`, явные связи взаимно однозначны | допустимо |
 | `insufficient_data`, `leads: []` | `[]`, непустой журнал поиска | допустимо |
 | `insufficient_data`, `leads: []` | есть `retained` | ошибка |
 
@@ -114,13 +135,45 @@ UTF-8 JSON, до 256 KB. Все поля обязательны; неизвес�
 публичный параметр image-style может оставаться в URL. Программа его не загружает.
 Прочие source URL сохраняют ограничения существующего контракта.
 
-An empty `comparisons` list is valid for `insufficient_data` when an executed search
-is logged but no candidates were found. `searches` must still contain a valid entry;
-a `candidate` result requires at least one `retained` comparison. Every lead must
-share at least one exact source URL with a retained comparison; links found only
-in rejected or inconclusive comparisons do not count. This structural link does
-not prove semantic support, which a human must review. An `insufficient_data`
-result cannot contain a retained comparison. Never invent a placeholder candidate.
+### Совместимость и ручной переход / Compatibility and migration
+
+Старая оболочка v1 сохраняет прежние поля и читается для `insufficient_data`:
+`leads` пуст, `retained` отсутствуют; `comparisons: []` по-прежнему допустим при
+непустом журнале поиска. Проверка дубликатов применяется также к v1.
+Пилот v1 с `candidate` отклоняется с требованием явных ссылок v2: общие URL больше
+не считаются достаточной связью. Это намеренное ужесточение проверки неоднозначных
+старых записей; самостоятельные команды `validate`/`report` для записей не меняются.
+
+Для перехода **в локальной копии**, после ручной проверки, измените версию на `2`,
+присвойте уникальные `comparison_id`, объедините повторные решения одного варианта
+в один текущий итог и добавьте `lead_links`. Для `insufficient_data` ссылки пусты.
+Не меняйте `outcome` и фактические выводы ради валидации. Если связь не установлена,
+оставьте исходную запись и устраните неопределённость вручную. Автомиграции нет.
+
+V2 requires unique comparison IDs and a one-to-one `lead_links` mapping from each
+zero-based lead index to a retained comparison. Every retained comparison must be
+referenced. Lead source URLs must belong to that specific comparison; a shared
+catalogue URL never creates a link. Duplicate IDs or normalized name/source pairs,
+dangling links and links to rejected/inconclusive entries are invalid. Human review
+still verifies identity and semantic support. V1 insufficient-data pilots remain
+readable; v1 candidates require manual v2 migration. Core record schema v1 is unchanged.
+
+### Статус отчёта и проверка байтов / Report status and byte checks
+
+Начальный `РЕЗУЛЬТАТ ПО OUTCOME` и завершающий `ИТОГ ПО OUTCOME` формируются только
+из проверенного `record.outcome`: «неподтверждённый кандидат» либо «недостаточно данных».
+Свободный `conclusion` выводится после сравнений как **не проверенный программой
+комментарий оператора**; каждая его строка помечается `> `. Программа не анализирует
+смысл комментария и не должна выдавать его за вычисленный результат.
+
+`validate_pilot(pilot)` без файла остаётся проверкой структуры. Для
+`render_pilot(pilot, image_path)` локальный файл обязателен: `None` вызывает `ValueError`,
+несовпадение SHA-256/размера не позволяет сформировать отчёт, отсутствующий файл даёт
+ошибку чтения. CLI требует файл и возвращает код `2` при ошибке.
+
+The report status comes from validated `outcome`, never from free text. The operator
+comment is quoted and labelled unverified. Structural validation may omit the file;
+rendering requires it and rejects `None` before making any byte-integrity claim.
 
 Синтетический пример использует контрольные **текстовые байты**, не изображение дела:
 `Synthetic fixture only. Not a case image.` с завершающим LF. Тесты создают их сами.
@@ -133,8 +186,8 @@ python -m unittest discover -s tests -v
 ```
 
 Тесты проверяют повреждение байтов, обе стороны согласованности `outcome`/`decision`,
-связь каждой гипотезы с источником сохранённого сравнения, пустой список при отсутствии
-кандидатов, отказ CLI/отчёта при противоречии, неверные даты/URL и сохранение отклонённых
-кандидатов в отчёте. Для публичного PR включайте только код,
+явные ссылки и дубликаты, совместимость v1, пустой список при отсутствии кандидатов,
+отказ CLI/отчёта при противоречии и `None`, программный статус независимо от комментария,
+неверные даты/URL и сохранение отклонённых кандидатов в отчёте. Для публичного PR включайте только код,
 общий процесс и полностью синтетические тесты. Материалы пилота, товарные сравнения
 по делу, скриншоты и отчёты не должны оказаться в индексе.

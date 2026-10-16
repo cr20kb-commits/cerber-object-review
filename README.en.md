@@ -32,6 +32,9 @@ an existing record with local file SHA-256, executed-query logs and all candidat
 decisions. See [workflow, commands and responsibilities](docs/PILOT_WORKFLOW.md).
 Codex/an operator performs visual analysis and searches; the program validates records
 and byte integrity and generates reports.
+New pilots use envelope v2 with explicit `comparison_id`/`lead_links`.
+V1 insufficient-data pilots remain readable; v1 candidates require manual v2
+migration. Core record schema v1 is unchanged; local material is never auto-migrated.
 
 ## Human review workflow
 

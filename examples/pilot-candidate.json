@@ -1,0 +1,82 @@
+{
+  "format_version": 2,
+  "record": {
+    "schema_version": 1,
+    "demo": true,
+    "object_id": "DEMO-KNOWN-MUG",
+    "official_url": null,
+    "description": "Вымышленная синяя кружка с круглой ручкой; предмет задан автором сценария.",
+    "observations": [
+      "По синтетическому описанию: синий корпус, круглая ручка, белая полоса."
+    ],
+    "limitations": [
+      "Изображения нет. Автоматическое распознавание не выполняется.",
+      "Никакой связи с карточками Europol и реальными делами."
+    ],
+    "outcome": "candidate",
+    "leads": [
+      {
+        "hypothesis": "Учебный кандидат: вымышленная кружка DEMO Blue Ring.",
+        "sources": [
+          "https://example.invalid/catalog/demo-blue-ring"
+        ],
+        "matches": [
+          "В заданном учебном описании совпадают цвет, ручка и полоса."
+        ],
+        "contradictions": [
+          "Неизвестны обратная сторона и маркировка; альтернативы не исключены."
+        ],
+        "confidence": "low",
+        "next_checks": [
+          "В настоящем исследовании потребовались бы независимый открытый каталог и проверка признаков человеком."
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "image_url": "https://example.invalid/synthetic-fixture",
+    "retrieved_at": "2026-10-16T00:00:00Z",
+    "sha256": "f5a775a2ef3a0b8008d46e468fb5e8eacc6b06d3c6e848801d64de0a22241d20",
+    "byte_length": 42,
+    "rights_note": "DEMO: original synthetic bytes, no third-party or case material.",
+    "processing": [
+      "DEMO: no image processing; not an image recognition test."
+    ]
+  },
+  "searches": [
+    {
+      "query": "DEMO invented query, not executed on the internet",
+      "kind": "web_search",
+      "executed_on": "2026-10-16",
+      "result_note": "DEMO mock log for structural testing only.",
+      "sources": []
+    }
+  ],
+  "comparisons": [
+    {
+      "comparison_id": "CMP-001",
+      "name": "Учебный кандидат: вымышленная кружка DEMO Blue Ring.",
+      "sources": [
+        "https://example.invalid/catalog/demo-blue-ring"
+      ],
+      "matches": [
+        "В заданном учебном описании совпадают цвет, ручка и полоса."
+      ],
+      "contradictions": [
+        "Неизвестны обратная сторона и маркировка; альтернативы не исключены."
+      ],
+      "decision": "retained",
+      "reason": "DEMO retained as the record hypothesis, not verified.",
+      "next_checks": [
+        "В настоящем исследовании потребовались бы независимый открытый каталог и проверка признаков человеком."
+      ]
+    }
+  ],
+  "conclusion": "DEMO: unconfirmed candidate based on the retained comparison.",
+  "lead_links": [
+    {
+      "lead_index": 0,
+      "comparison_id": "CMP-001"
+    }
+  ]
+}

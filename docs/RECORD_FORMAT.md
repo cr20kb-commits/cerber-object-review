@@ -26,3 +26,8 @@ HTTPS-ссылок без логина, пароля, query и fragment), `match
 Only qualitative, unconfirmed confidence is supported. Structural validation cannot
 verify facts, the ID-to-URL relationship, URL availability, rights or personal-data absence.
 No field may contain identifying people or accusations. Work records remain local.
+
+Оболочка пилота v2 хранит `comparison_id` и `lead_links` вне этой записи:
+см. [PILOT_WORKFLOW.md](PILOT_WORKFLOW.md). Не добавляйте эти поля в `record` или `leads`.
+Standalone record validation remains unchanged; explicit comparison references belong
+to the pilot envelope, not to core schema v1.
