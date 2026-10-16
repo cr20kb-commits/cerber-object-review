@@ -52,11 +52,12 @@ def main():
             if is_pilot:
                 print("LOCAL IMAGE HASH AND SIZE MATCH; this does not authenticate the source or conclusions")
         else:
+            report_text = render_pilot(record, args.image) if is_pilot else render(record)
             target = ROOT / ".local" / "reports"
             target.mkdir(parents=True, exist_ok=True)
             output = target / (uuid.uuid4().hex + ".txt")
             with output.open("x", encoding="utf-8") as stream:
-                stream.write(render_pilot(record, args.image) if is_pilot else render(record))
+                stream.write(report_text)
             print("Local report: " + str(output.relative_to(ROOT)))
         return 0
     except (OSError, ValueError, RecursionError):

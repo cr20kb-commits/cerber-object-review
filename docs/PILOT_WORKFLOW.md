@@ -170,10 +170,15 @@ readable; v1 candidates require manual v2 migration. Core record schema v1 is un
 `render_pilot(pilot, image_path)` локальный файл обязателен: `None` вызывает `ValueError`,
 несовпадение SHA-256/размера не позволяет сформировать отчёт, отсутствующий файл даёт
 ошибку чтения. CLI требует файл и возвращает код `2` при ошибке.
+CLI формирует весь текст до создания каталога и файла отчёта. Если повторное чтение
+исходника при формировании не удалось, новый TXT не появляется; существующие отчёты
+сохраняются. Это не отменяет возможных ошибок записи уже сформированного текста.
 
 The report status comes from validated `outcome`, never from free text. The operator
 comment is quoted and labelled unverified. Structural validation may omit the file;
 rendering requires it and rejects `None` before making any byte-integrity claim.
+The CLI renders the complete text before creating the report directory or file.
+A repeated-read failure returns exit code 2 without leaving a new empty report.
 
 Синтетический пример использует контрольные **текстовые байты**, не изображение дела:
 `Synthetic fixture only. Not a case image.` с завершающим LF. Тесты создают их сами.

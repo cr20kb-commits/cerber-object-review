@@ -7,7 +7,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
-from contextlib import redirect_stdout
+from contextlib import redirect_stderr, redirect_stdout
 from unittest.mock import patch
 
 from trace_object import __main__ as cli
@@ -277,6 +277,43 @@ class Pilot(unittest.TestCase):
         report = reports[0].read_text(encoding="utf-8")
         self.assertIn("leads[0] -> CMP-001", report)
         self.assertIn("Предоставленные локальные байты совпадают с записью: ДА", report)
+
+    def test_cli_repeat_read_failure_leaves_no_report_or_directory(self):
+        for factory in (fixture, candidate_fixture):
+            for existing_reports in (False, True):
+                data = factory()
+                with self.subTest(version=data["format_version"], existing_reports=existing_reports):
+                    case = self.root / (str(data["format_version"]) + "-" + str(existing_reports))
+                    case.mkdir()
+                    image = case / "synthetic.bin"
+                    image.write_bytes(SAMPLE)
+                    record = case / "pilot.json"
+                    record.write_text(json.dumps(data), encoding="utf-8")
+                    reports = case / ".local" / "reports"
+                    if existing_reports:
+                        reports.mkdir(parents=True)
+                        (reports / "existing.txt").write_bytes(b"Synthetic existing report")
+
+                    def validate_then_lose_file(pilot, path):
+                        errors = validate_pilot(pilot, path)
+                        self.assertEqual(errors, [])
+                        # The first read succeeds; the real renderer must attempt a second read.
+                        image.unlink()
+                        return errors
+
+                    output, error = io.StringIO(), io.StringIO()
+                    with patch.object(cli, "ROOT", case), patch.object(sys, "argv", ["trace_object", "pilot-report", str(record), str(image)]), patch.object(cli, "validate_pilot", side_effect=validate_then_lose_file) as check, patch.object(cli, "render_pilot", wraps=render_pilot) as render_report, redirect_stdout(output), redirect_stderr(error):
+                        self.assertEqual(cli.main(), 2)
+                    check.assert_called_once()
+                    render_report.assert_called_once()
+                    self.assertFalse(image.exists())
+                    self.assertNotIn("Local report:", output.getvalue())
+                    self.assertIn("ERROR: cannot read or process record", error.getvalue())
+                    if existing_reports:
+                        self.assertEqual(list(reports.iterdir()), [reports / "existing.txt"])
+                        self.assertEqual((reports / "existing.txt").read_bytes(), b"Synthetic existing report")
+                    else:
+                        self.assertFalse((case / ".local").exists())
 
     def test_logged_search_with_no_candidates_is_valid_and_reproducible(self):
         data = fixture()
