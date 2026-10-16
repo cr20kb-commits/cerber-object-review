@@ -1,0 +1,27 @@
+name: Ошибка / Bug
+description: Воспроизводимая ошибка кода на синтетическом примере
+title: "[Bug] "
+body:
+  - type: markdown
+    attributes:
+      value: "Публично. Не добавляйте личные данные, ключи, отчёты дел, изображения людей и обвинения. / Public: no personal data, secrets, case reports or accusations."
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Шаги / Steps
+      description: Только синтетический пример, версия Python и команда; без личных путей и логов дел.
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Ожидаемый и фактический результат / Expected and actual result
+    validations:
+      required: true
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Проверка перед публикацией / Before posting
+      options:
+        - label: Я проверил текст; личных данных, секретов, материалов дел и обвинений нет. / I checked for sensitive content.
+          required: true

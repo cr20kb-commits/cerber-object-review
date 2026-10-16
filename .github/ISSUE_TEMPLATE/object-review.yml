@@ -1,0 +1,59 @@
+name: Распознавание предмета / Object review
+description: Только свойства предмета, ID, официальная карточка и открытые товарные источники
+title: "[Object] ID — краткое описание предмета"
+body:
+  - type: markdown
+    attributes:
+      value: "ПУБЛИЧНО: только предметы. Не указывайте людей, подозреваемых, адреса потерпевших, обвинения; не прикрепляйте изображения и отчёты. Существенные сведения после проверки человеком направляйте через официальную карточку Europol. Проект независим от Europol. / PUBLIC: objects only, no people, victim addresses, accusations, images or case reports. Human-verified investigative leads go to Europol."
+  - type: input
+    id: card_id
+    attributes:
+      label: Официальный ID / Official ID
+      description: Сверьте ID вручную на официальной карточке.
+    validations:
+      required: true
+  - type: input
+    id: card_url
+    attributes:
+      label: Официальная ссылка / Official card URL
+      placeholder: https://www.europol.europa.eu/stopchildabuse/...
+    validations:
+      required: true
+  - type: textarea
+    id: observation
+    attributes:
+      label: Описание и наблюдения / Description and observations
+      description: Только видимые свойства предмета. Отметьте ограничения качества и варианты чтения.
+    validations:
+      required: true
+  - type: textarea
+    id: hypothesis
+    attributes:
+      label: Гипотеза и открытые товарные источники / Hypothesis and public product sources
+      description: Только проверенные ссылки. Укажите применение ИИ. Не копируйте чужие изображения.
+    validations:
+      required: true
+  - type: textarea
+    id: comparison
+    attributes:
+      label: Совпадения, противоречия, альтернативы / Matches, contradictions, alternatives
+    validations:
+      required: true
+  - type: textarea
+    id: next_check
+    attributes:
+      label: Качественная уверенность и что проверить / Qualitative confidence and next checks
+      description: Не выдумывайте вероятности. «Недостаточно данных» допустимо. Товар не устанавливает человека или место съёмки.
+    validations:
+      required: true
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Проверка человеком перед публикацией / Human review before posting
+      options:
+        - label: ID и официальная ссылка сверены; в тексте нет личных данных, подозреваемых, адресов потерпевших или обвинений.
+          required: true
+        - label: Я не добавляю изображения, рабочие отчёты, ключи или иные материалы дела; соблюдаю права источников.
+          required: true
+        - label: Существенные сведения отправлю через Europol после проверки человеком; GitHub не является каналом следствия.
+          required: true

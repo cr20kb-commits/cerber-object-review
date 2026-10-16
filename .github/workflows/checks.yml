@@ -1,0 +1,19 @@
+name: Offline checks
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Tests and demonstrations (system Python)
+        run: |
+          python3 -m unittest discover -s tests -v
+          python3 -m trace_object demo
+          python3 tools/audit_publication.py

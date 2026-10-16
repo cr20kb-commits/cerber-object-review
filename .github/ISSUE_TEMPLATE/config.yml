@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Europol — official cards / официальные карточки
+    url: https://www.europol.europa.eu/stopchildabuse
+    about: После проверки человеком передайте существенные сведения через форму официальной карточки; не через GitHub.

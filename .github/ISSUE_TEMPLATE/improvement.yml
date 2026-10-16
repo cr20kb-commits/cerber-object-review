@@ -1,0 +1,26 @@
+name: Улучшение / Improvement
+description: Предложить ограниченное изменение кода или процесса
+title: "[Improvement] "
+body:
+  - type: markdown
+    attributes:
+      value: "Без личных данных, материалов дел и обвинений. Не предлагайте поиск людей или исходных материалов насилия. / No personal data, case materials, accusations or person searches."
+  - type: textarea
+    id: need
+    attributes:
+      label: Задача и предлагаемое поведение / Need and proposed behavior
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Как проверить на синтетических данных / Acceptance on synthetic data
+    validations:
+      required: true
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Проверка перед публикацией / Before posting
+      options:
+        - label: Я проверил текст; личных данных, секретов, материалов дел и обвинений нет. / I checked for sensitive content.
+          required: true
