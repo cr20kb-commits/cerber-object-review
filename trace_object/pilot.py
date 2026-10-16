@@ -107,6 +107,7 @@ def validate_pilot(pilot, image_path=None):
         if not comparisons and (not isinstance(pilot["record"], dict) or pilot["record"].get("outcome") != "insufficient_data"):
             errors.append("comparisons: empty list requires insufficient_data after a logged search")
         retained = False
+        retained_sources = set()
         for item in comparisons:
             if not isinstance(item, dict) or set(item) != COMPARISON:
                 errors.append("comparisons: invalid entry fields")
@@ -122,8 +123,21 @@ def validate_pilot(pilot, image_path=None):
             retained = retained or item["decision"] == "retained"
             if not source_list(item["sources"], demo):
                 errors.append("comparisons: verified source links required")
-        if retained and isinstance(pilot["record"], dict) and pilot["record"].get("outcome") == "insufficient_data":
-            errors.append("comparisons: retained hypothesis requires candidate record outcome")
+            elif item["decision"] == "retained":
+                retained_sources.update(item["sources"])
+        record = pilot["record"]
+        if isinstance(record, dict):
+            if retained and record.get("outcome") == "insufficient_data":
+                errors.append("comparisons: retained hypothesis requires candidate record outcome")
+            if record.get("outcome") == "candidate":
+                if not retained:
+                    errors.append("comparisons: candidate outcome requires a retained comparison")
+                elif isinstance(record.get("leads"), list):
+                    for index, lead in enumerate(record["leads"]):
+                        # Shared source URLs link the existing structures without changing their fields.
+                        # Whether the comparison actually supports the text still needs human review.
+                        if isinstance(lead, dict) and strings(lead.get("sources")) and not retained_sources.intersection(lead["sources"]):
+                            errors.append("record: leads[" + str(index) + "]: expected a source shared with a retained comparison")
     if not text(pilot["conclusion"]):
         errors.append("conclusion: expected explicit bounded result")
     return errors

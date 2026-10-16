@@ -30,6 +30,20 @@ def fixture():
     }
 
 
+def candidate_fixture():
+    data = fixture()
+    data["record"] = json.loads((ROOT / "examples" / "known-object.json").read_text(encoding="utf-8"))
+    lead = data["record"]["leads"][0]
+    data["comparisons"] = [{
+        "name": lead["hypothesis"], "sources": lead["sources"].copy(),
+        "matches": lead["matches"].copy(), "contradictions": lead["contradictions"].copy(),
+        "decision": "retained", "reason": "DEMO retained as the record hypothesis, not verified.",
+        "next_checks": lead["next_checks"].copy(),
+    }]
+    data["conclusion"] = "DEMO: unconfirmed candidate based on the retained comparison."
+    return data
+
+
 class Pilot(unittest.TestCase):
     def setUp(self):
         base = ROOT / ".local" / "test-tmp"
@@ -78,7 +92,51 @@ class Pilot(unittest.TestCase):
     def test_retained_candidate_cannot_hide_under_insufficient_data(self):
         data = fixture()
         data["comparisons"][0]["decision"] = "retained"
-        self.assertTrue(validate_pilot(data))
+        self.assertIn("comparisons: retained hypothesis requires candidate record outcome", validate_pilot(data))
+        with self.assertRaises(ValueError):
+            render_pilot(data, self.image)
+
+    def test_candidate_with_all_rejected_is_invalid_and_cannot_report(self):
+        data = candidate_fixture()
+        data["comparisons"][0]["decision"] = "rejected"
+        self.assertIn("comparisons: candidate outcome requires a retained comparison", validate_pilot(data, self.image))
+        with self.assertRaises(ValueError):
+            render_pilot(data, self.image)
+        record = self.root / "inconsistent-candidate.json"
+        record.write_text(json.dumps(data), encoding="utf-8")
+        reports = ROOT / ".local" / "reports"
+        before = set(reports.glob("*.txt"))
+        for command in ("pilot-check", "pilot-report"):
+            result = subprocess.run([sys.executable, "-m", "trace_object", command, str(record), str(self.image)], cwd=ROOT, capture_output=True)
+            self.assertEqual(result.returncode, 2, result.stdout)
+            self.assertIn(b"candidate outcome requires a retained comparison", result.stderr)
+        self.assertEqual(set(reports.glob("*.txt")), before)
+
+    def test_candidate_with_only_inconclusive_is_invalid(self):
+        data = candidate_fixture()
+        data["comparisons"][0]["decision"] = "inconclusive"
+        self.assertIn("comparisons: candidate outcome requires a retained comparison", validate_pilot(data, self.image))
+
+    def test_candidate_with_linked_retained_comparison_is_valid(self):
+        data = candidate_fixture()
+        # Other rejected alternatives must not invalidate a supported candidate.
+        data["comparisons"].append(fixture()["comparisons"][0])
+        self.assertEqual(validate_pilot(data, self.image), [])
+        report = render_pilot(data, self.image)
+        self.assertIn("неподтверждённый кандидат", report)
+        self.assertIn("retained", report)
+        self.assertIn(data["record"]["leads"][0]["hypothesis"], report)
+
+    def test_each_lead_requires_a_source_from_a_retained_comparison(self):
+        for lead_index in (0, 1):
+            with self.subTest(lead_index=lead_index):
+                data = candidate_fixture()
+                if lead_index:
+                    data["record"]["leads"].append(dict(data["record"]["leads"][0]))
+                # This source belongs only to a rejected alternative.
+                data["comparisons"].append(fixture()["comparisons"][0])
+                data["record"]["leads"][lead_index]["sources"] = data["comparisons"][1]["sources"].copy()
+                self.assertIn("record: leads[" + str(lead_index) + "]: expected a source shared with a retained comparison", validate_pilot(data, self.image))
 
     def test_logged_search_with_no_candidates_is_valid_and_reproducible(self):
         data = fixture()

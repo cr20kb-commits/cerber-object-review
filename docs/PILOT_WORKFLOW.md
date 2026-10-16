@@ -87,6 +87,27 @@ UTF-8 JSON, до 256 KB. Все поля обязательны; неизвес�
 `decision`: `rejected` — показанный вариант отклонён; `inconclusive` — оценить не удалось;
 `retained` — сохранённая гипотеза для дальнейшей проверки, **не подтверждённое изделие**.
 При `retained` вложенная запись должна иметь исход `candidate` и непустые `leads`.
+Обратное требование также обязательно: `record.outcome: candidate` требует хотя бы
+одного сравнения с `decision: retained`. Только `rejected` или `inconclusive`
+недостаточно; валидатор возвращает ошибку, а `pilot-report` не создаёт отчёт.
+
+Каждая гипотеза в `record.leads` должна опираться на сохранённое сравнение.
+Без новых полей связь задаётся через `sources`: хотя бы один URL каждого `lead`
+должен **точно совпадать** с URL хотя бы одного сравнения `retained`.
+Источник только отклонённого или неопределённого варианта не подходит.
+Это структурная связь, а не доказательство содержания: человек проверяет, что
+сравнение действительно поддерживает гипотезу. Общая ссылка сама по себе не
+подтверждает совпадение предмета. Отдельный контракт записи `schema_version: 1`
+не меняется; требование действует в оболочке пилота.
+
+| Итог записи | Сравнения | Результат при остальных корректных полях |
+| --- | --- | --- |
+| `candidate`, непустые `leads` | все `rejected` | ошибка |
+| `candidate`, непустые `leads` | только `inconclusive` | ошибка |
+| `candidate`, непустые `leads` | есть `retained`, каждый `lead` связан источником | допустимо |
+| `insufficient_data`, `leads: []` | `[]`, непустой журнал поиска | допустимо |
+| `insufficient_data`, `leads: []` | есть `retained` | ошибка |
+
 В `comparisons` массивы источников, совпадений, противоречий и следующих шагов непустые.
 Если противоречия или совпадения не установлены, напишите это явно.
 Для реального изображения допускается официальный URL Europol под `/cms/sites/default/files/`;
@@ -95,7 +116,11 @@ UTF-8 JSON, до 256 KB. Все поля обязательны; неизвес�
 
 An empty `comparisons` list is valid for `insufficient_data` when an executed search
 is logged but no candidates were found. `searches` must still contain a valid entry;
-a `candidate` result still requires a comparison. Never invent a placeholder candidate.
+a `candidate` result requires at least one `retained` comparison. Every lead must
+share at least one exact source URL with a retained comparison; links found only
+in rejected or inconclusive comparisons do not count. This structural link does
+not prove semantic support, which a human must review. An `insufficient_data`
+result cannot contain a retained comparison. Never invent a placeholder candidate.
 
 Синтетический пример использует контрольные **текстовые байты**, не изображение дела:
 `Synthetic fixture only. Not a case image.` с завершающим LF. Тесты создают их сами.
@@ -107,7 +132,9 @@ a `candidate` result still requires a comparison. Never invent a placeholder can
 python -m unittest discover -s tests -v
 ```
 
-Тесты проверяют повреждение байтов, несогласованные решения, неверные даты/URL и
-сохранение отклонённых кандидатов в отчёте. Для публичного PR включайте только код,
+Тесты проверяют повреждение байтов, обе стороны согласованности `outcome`/`decision`,
+связь каждой гипотезы с источником сохранённого сравнения, пустой список при отсутствии
+кандидатов, отказ CLI/отчёта при противоречии, неверные даты/URL и сохранение отклонённых
+кандидатов в отчёте. Для публичного PR включайте только код,
 общий процесс и полностью синтетические тесты. Материалы пилота, товарные сравнения
 по делу, скриншоты и отчёты не должны оказаться в индексе.
