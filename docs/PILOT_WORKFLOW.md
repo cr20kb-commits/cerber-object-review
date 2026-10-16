@@ -61,6 +61,9 @@ source authentication, web search, redaction or Europol submission is implemente
 
 9. Прочитайте новый TXT из `.local/reports/`. При отсутствии различительных совпадений
    используйте `insufficient_data`; отклонённые модели сохраняются в `comparisons`.
+   Если поиск выполнен, но кандидаты не найдены, допустим `comparisons: []` при
+   `record.outcome: insufficient_data` и непустом журнале `searches`. Не создавайте
+   фиктивного кандидата для прохождения валидации. Сам журнал не доказывает выполнение поиска.
    Проверка человеком и отправка сведений остаются отдельными действиями.
 
 Replaying `pilot-check` and `pilot-report` with the saved manifest and original file
@@ -78,7 +81,7 @@ UTF-8 JSON, до 256 KB. Все поля обязательны; неизвес�
 | `record` | существующая запись `schema_version: 1`, см. RECORD_FORMAT.md |
 | `provenance` | `image_url`, `retrieved_at` (ISO-8601 UTC), `sha256` (64 lowercase hex), `byte_length` (>0 integer), `rights_note`, `processing` (непустой массив строк) |
 | `searches` | 1–100 объектов: `query`, `kind` (`web_search` / `web_image_search`), `executed_on` (`YYYY-MM-DD`), `result_note`, `sources` (массив HTTPS URL, может быть пустым) |
-| `comparisons` | 1–50 объектов: `name`, `sources`, `matches`, `contradictions`, `decision`, `reason`, `next_checks` |
+| `comparisons` | 0–50 объектов: `name`, `sources`, `matches`, `contradictions`, `decision`, `reason`, `next_checks`; пустой список разрешён только при `insufficient_data` и непустом журнале выполненного поиска |
 | `conclusion` | явный ограниченный вывод, включая «недостаточно данных» при слабых результатах |
 
 `decision`: `rejected` — показанный вариант отклонён; `inconclusive` — оценить не удалось;
@@ -89,6 +92,10 @@ UTF-8 JSON, до 256 KB. Все поля обязательны; неизвес�
 Для реального изображения допускается официальный URL Europol под `/cms/sites/default/files/`;
 публичный параметр image-style может оставаться в URL. Программа его не загружает.
 Прочие source URL сохраняют ограничения существующего контракта.
+
+An empty `comparisons` list is valid for `insufficient_data` when an executed search
+is logged but no candidates were found. `searches` must still contain a valid entry;
+a `candidate` result still requires a comparison. Never invent a placeholder candidate.
 
 Синтетический пример использует контрольные **текстовые байты**, не изображение дела:
 `Synthetic fixture only. Not a case image.` с завершающим LF. Тесты создают их сами.

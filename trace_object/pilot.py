@@ -101,9 +101,11 @@ def validate_pilot(pilot, image_path=None):
             if not source_list(item["sources"], demo, allow_empty=True):
                 errors.append("searches: invalid source URLs")
     comparisons = pilot["comparisons"]
-    if not isinstance(comparisons, list) or not 1 <= len(comparisons) <= 50:
-        errors.append("comparisons: expected 1 to 50 reviewed candidates")
+    if not isinstance(comparisons, list) or len(comparisons) > 50:
+        errors.append("comparisons: expected a list of at most 50 reviewed candidates")
     else:
+        if not comparisons and (not isinstance(pilot["record"], dict) or pilot["record"].get("outcome") != "insufficient_data"):
+            errors.append("comparisons: empty list requires insufficient_data after a logged search")
         retained = False
         for item in comparisons:
             if not isinstance(item, dict) or set(item) != COMPARISON:
@@ -137,6 +139,8 @@ def render_pilot(pilot, image_path):
              "КРАТКИЕ РЕШЕНИЯ:"]
     for item in pilot["comparisons"]:
         lines.append(item["name"] + " / " + item["decision"] + ": " + item["reason"])
+    if not pilot["comparisons"]:
+        lines.append("Кандидаты не найдены по выполненному поиску; сравнивать нечего.")
     lines += ["ПОДРОБНАЯ ЗАПИСЬ:", render(pilot["record"]), "ПРОИСХОЖДЕНИЕ И ПРОВЕРКА БАЙТОВ:",
              "URL изображения: " + p["image_url"], "Получено UTC: " + p["retrieved_at"],
              "SHA-256: " + p["sha256"], "Размер в байтах: " + str(p["byte_length"]),

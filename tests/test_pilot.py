@@ -80,6 +80,30 @@ class Pilot(unittest.TestCase):
         data["comparisons"][0]["decision"] = "retained"
         self.assertTrue(validate_pilot(data))
 
+    def test_logged_search_with_no_candidates_is_valid_and_reproducible(self):
+        data = fixture()
+        data["comparisons"] = []
+        data["searches"][0]["result_note"] = "DEMO completed mock search; no candidate found."
+        self.assertEqual(validate_pilot(data, self.image), [])
+        report = render_pilot(data, self.image)
+        self.assertIn("Кандидаты не найдены", report)
+        self.assertNotIn("DEMO fictional candidate", report)
+        record = self.root / "no-candidates.json"
+        record.write_text(json.dumps(data), encoding="utf-8")
+        result = subprocess.run([sys.executable, "-m", "trace_object", "pilot-check", str(record), str(self.image)], cwd=ROOT, capture_output=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_no_candidates_does_not_allow_an_unexecuted_search(self):
+        data = fixture()
+        data.update(comparisons=[], searches=[])
+        self.assertTrue(validate_pilot(data, self.image))
+
+    def test_candidate_outcome_requires_a_comparison(self):
+        data = fixture()
+        data["record"] = json.loads((ROOT / "examples" / "known-object.json").read_text(encoding="utf-8"))
+        data["comparisons"] = []
+        self.assertIn("comparisons: empty list requires insufficient_data after a logged search", validate_pilot(data, self.image))
+
     def test_official_image_source_cannot_spoof_host(self):
         data = fixture()
         data["record"].update(demo=False, object_id="C34012025", official_url="https://www.europol.europa.eu/stopchildabuse/6309")
